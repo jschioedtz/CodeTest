@@ -6,16 +6,18 @@ import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import InputBase from '@mui/material/InputBase';
+import TextField from '@mui/material/TextField';
 
-import SearchIcon from '@mui/icons-material/Search';
 import IconButton from '@mui/material/IconButton';
+import SearchIcon from '@mui/icons-material/Search';
+import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
 import ArrowCircleDownIcon from '@mui/icons-material/ArrowCircleDown';
 import ArrowCircleUpIcon from '@mui/icons-material/ArrowCircleUp';
 import PlusOneIcon from '@mui/icons-material/PlusOne';
 import CameraIcon from '@mui/icons-material/Camera';
 import ResetIcon from '@mui/icons-material/RestartAlt';
 
-const Search = styled('div')(({ theme }) => ({
+const InputWrapper = styled('div')(({ theme }) => ({
   position: 'relative',
   borderRadius: theme.shape.borderRadius,
   backgroundColor: alpha(theme.palette.common.white, 0.15),
@@ -31,7 +33,7 @@ const Search = styled('div')(({ theme }) => ({
   },
 }));
 
-const SearchIconWrapper = styled('div')(({ theme }) => ({
+const IconWrapper = styled('div')(({ theme }) => ({
   padding: theme.spacing(0, 2),
   height: '100%',
   position: 'absolute',
@@ -65,12 +67,14 @@ enum CountActionType {
     incrementRandom = "incrementRandom",
     incrementOdd = "incrementOdd",
     decrement = "decrement",
+    decrementInput = "decrementInput",
     reset = "reset",
 }
 
 // An interface for our actions
 interface CountAction {
     type: CountActionType;
+    payload?: number;
 }
 
 // An interface for our state
@@ -91,6 +95,10 @@ function counterReducer(state: CountState, action: CountAction) {
             return { count: state.count % 2 === 0 ? state.count + 1 : state.count + 2 };
         case "decrement":
             return { count: state.count > 0 ? state.count - 1 : 0 };
+        // Task 4.4
+        case "decrementInput":
+            if (action.payload)
+                return { count: (state.count - action.payload) > 0 ? state.count - action.payload : 0 };
         // Task 4.5
         case "reset":
             return { count: 0 };
@@ -101,7 +109,8 @@ function counterReducer(state: CountState, action: CountAction) {
 
 const PrimarySearchAppBar: React.FC<SearchProps> = ({ onChange }) => {
 
-    const [countState, dispatch] = React.useReducer(counterReducer, { count: 0 });
+  const [numberInput, setNumberInput] = React.useState<number>(0);
+  const [countState, dispatch] = React.useReducer(counterReducer, { count: 0 });
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -115,16 +124,34 @@ const PrimarySearchAppBar: React.FC<SearchProps> = ({ onChange }) => {
                 >
                     DSV
                 </Typography>
-                <Search>
-                    <SearchIconWrapper>
+                <InputWrapper>
+                    <IconWrapper>
                         <SearchIcon />
-                    </SearchIconWrapper>
+                    </IconWrapper>
                     <StyledInputBase
                         placeholder="Search…"
                         onChange={(event) => onChange(event.target.value)}
                         inputProps={{ 'aria-label': 'search' }}
                     />
-                </Search>
+                </InputWrapper>
+
+                <InputWrapper>
+                    <IconWrapper>
+                        <KeyboardDoubleArrowDownIcon />
+                    </IconWrapper>
+                    <StyledInputBase
+                          onChange={(event) => setNumberInput(Number(event.target.value))}
+                          size="small"
+                          type="number"
+                          defaultValue={numberInput} />
+                </InputWrapper>
+
+                <IconButton
+                    onClick={() => dispatch({ type: CountActionType.decrementInput, payload: numberInput })}
+                    aria-label="Decrement"
+                >
+                    <KeyboardDoubleArrowDownIcon />
+                </IconButton>
                 <IconButton
                     onClick={() => dispatch({ type: CountActionType.decrement })}
                     aria-label="Decrement"
